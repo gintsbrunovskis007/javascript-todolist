@@ -5,7 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>JavaScript ToDoList</title>
     <link rel="stylesheet" href="style.css" />
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
   </head>
-  <body></body>
+  <body>
+    <h1>JavaScript ToDoList</h1>
+
+    <form id="task-form">
+      <div>
+        <label for="task-input">Task</label>
+        <input type="text" id="task-input" name="task-input" />
+        <button type="submit" id="task-create-button">Create</button>
+      </div>
+    </form>
+
+    <div>
+      <ul id="task-list"></ul>
+    </div>
+  </body>
 </html>
