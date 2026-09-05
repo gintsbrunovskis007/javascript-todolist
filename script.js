@@ -7,7 +7,25 @@ let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
 tasks.forEach((task) => {
   const li = document.createElement("li");
-  li.textContent = task;
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+
+  checkbox.checked = task.completed;
+
+  li.appendChild(checkbox);
+  li.append(task.text);
+
+  if (task.completed) {
+    li.classList.add("completed");
+  }
+
+  checkbox.addEventListener("change", () => {
+    task.completed = checkbox.checked;
+    li.classList.toggle("completed", checkbox.checked);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  });
+
   taskList.appendChild(li);
 });
 
@@ -21,11 +39,27 @@ taskForm.addEventListener("submit", (e) => {
   }
 
   const li = document.createElement("li");
-  li.textContent = taskInputValue;
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+
+  li.appendChild(checkbox);
+  li.append(taskInputValue);
 
   taskList.appendChild(li);
 
-  tasks.push(taskInputValue);
+  const task = {
+    text: taskInputValue,
+    completed: false,
+  };
+
+  checkbox.addEventListener("change", () => {
+    task.completed = checkbox.checked;
+    li.classList.toggle("completed", checkbox.checked);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  });
+
+  tasks.push(task);
   localStorage.setItem("tasks", JSON.stringify(tasks));
 
   taskForm.reset();
