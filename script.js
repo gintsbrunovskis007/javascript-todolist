@@ -4,6 +4,9 @@ const taskCreateButton = document.getElementById("task-create-button");
 const activeTaskList = document.getElementById("active-task-list");
 const completedTaskList = document.getElementById("completed-task-list");
 
+let editingTask = null;
+let editingTaskText = null;
+
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
 tasks.forEach((task) => {
@@ -17,16 +20,32 @@ tasks.forEach((task) => {
   const deleteButton = document.createElement("button");
   deleteButton.textContent = "Delete";
 
+  const editButton = document.createElement("button");
+  editButton.textContent = "Edit";
+
+  const taskText = document.createElement("span");
+  taskText.textContent = task.text;
+
   li.appendChild(checkbox);
-  li.append(task.text);
+  li.append(taskText);
 
   if (!task.completed) {
     activeTaskList.appendChild(li);
+    li.append(editButton);
+    deleteButton.remove();
   } else {
     li.append(deleteButton);
     completedTaskList.appendChild(li);
     li.classList.add("completed");
+    editButton.remove();
   }
+
+  editButton.addEventListener("click", () => {
+    editingTask = task;
+    editingTaskText = taskText;
+    taskInput.value = task.text;
+    taskCreateButton.textContent = "Update";
+  });
 
   deleteButton.addEventListener("click", () => {
     tasks = tasks.filter((t) => t !== task);
@@ -39,11 +58,14 @@ tasks.forEach((task) => {
 
     if (!task.completed) {
       activeTaskList.appendChild(li);
+      li.append(editButton);
       li.classList.remove("completed");
+      deleteButton.remove();
     } else {
       li.append(deleteButton);
       completedTaskList.appendChild(li);
       li.classList.add("completed");
+      editButton.remove();
     }
 
     localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -59,6 +81,21 @@ taskForm.addEventListener("submit", (e) => {
     return;
   }
 
+  if (editingTask) {
+    editingTask.text = taskInputValue;
+    editingTaskText.textContent = editingTask.text;
+
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+    editingTask = null;
+    editingTaskText = null;
+
+    taskCreateButton.textContent = "Create";
+
+    taskForm.reset();
+    return;
+  }
+
   const li = document.createElement("li");
 
   const checkbox = document.createElement("input");
@@ -67,8 +104,15 @@ taskForm.addEventListener("submit", (e) => {
   const deleteButton = document.createElement("button");
   deleteButton.textContent = "Delete";
 
+  const editButton = document.createElement("button");
+  editButton.textContent = "Edit";
+
+  const taskText = document.createElement("span");
+  taskText.textContent = taskInputValue;
+
   li.appendChild(checkbox);
-  li.append(taskInputValue);
+  li.append(taskText);
+  li.append(editButton);
 
   activeTaskList.appendChild(li);
 
@@ -76,6 +120,13 @@ taskForm.addEventListener("submit", (e) => {
     text: taskInputValue,
     completed: false,
   };
+
+  editButton.addEventListener("click", () => {
+    editingTask = task;
+    editingTaskText = taskText;
+
+    taskInput.value = task.text;
+  });
 
   deleteButton.addEventListener("click", () => {
     tasks = tasks.filter((t) => t !== task);
@@ -88,11 +139,14 @@ taskForm.addEventListener("submit", (e) => {
 
     if (!task.completed) {
       activeTaskList.appendChild(li);
+      li.append(editButton);
       li.classList.remove("completed");
+      deleteButton.remove();
     } else {
       li.append(deleteButton);
       completedTaskList.appendChild(li);
       li.classList.add("completed");
+      editButton.remove();
     }
 
     localStorage.setItem("tasks", JSON.stringify(tasks));
