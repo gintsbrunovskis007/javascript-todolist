@@ -1,7 +1,8 @@
 const taskForm = document.getElementById("task-form");
 const taskInput = document.getElementById("task-input");
 const taskCreateButton = document.getElementById("task-create-button");
-const taskList = document.getElementById("task-list");
+const activeTaskList = document.getElementById("active-task-list");
+const completedTaskList = document.getElementById("completed-task-list");
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
@@ -16,17 +17,26 @@ tasks.forEach((task) => {
   li.appendChild(checkbox);
   li.append(task.text);
 
-  if (task.completed) {
+  if (!task.completed) {
+    activeTaskList.appendChild(li);
+  } else {
+    completedTaskList.appendChild(li);
     li.classList.add("completed");
   }
 
   checkbox.addEventListener("change", () => {
     task.completed = checkbox.checked;
-    li.classList.toggle("completed", checkbox.checked);
+
+    if (!task.completed) {
+      activeTaskList.appendChild(li);
+      li.classList.remove("completed");
+    } else {
+      completedTaskList.appendChild(li);
+      li.classList.add("completed");
+    }
+
     localStorage.setItem("tasks", JSON.stringify(tasks));
   });
-
-  taskList.appendChild(li);
 });
 
 taskForm.addEventListener("submit", (e) => {
@@ -46,7 +56,7 @@ taskForm.addEventListener("submit", (e) => {
   li.appendChild(checkbox);
   li.append(taskInputValue);
 
-  taskList.appendChild(li);
+  activeTaskList.appendChild(li);
 
   const task = {
     text: taskInputValue,
@@ -55,7 +65,15 @@ taskForm.addEventListener("submit", (e) => {
 
   checkbox.addEventListener("change", () => {
     task.completed = checkbox.checked;
-    li.classList.toggle("completed", checkbox.checked);
+
+    if (!task.completed) {
+      activeTaskList.appendChild(li);
+      li.classList.remove("completed");
+    } else {
+      completedTaskList.appendChild(li);
+      li.classList.add("completed");
+    }
+
     localStorage.setItem("tasks", JSON.stringify(tasks));
   });
 
