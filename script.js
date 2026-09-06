@@ -22,23 +22,25 @@ let completedTaskCount = 0;
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
-deleteAllButton.addEventListener("click", () => {
-  tasks = tasks.filter((task) => !task.completed);
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-
-  completedTaskList.innerHTML = "";
-  completedTaskCount = 0;
+function updateTaskCount() {
+  activeTaskCountSpan.textContent = activeTaskCount;
   completedTaskCountSpan.textContent = completedTaskCount;
+}
 
-  deleteAllButton.style.display = "none";
-});
+function saveTasks() {
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
 
-tasks.forEach((task) => {
+function updateDeleteAllButton() {
+  deleteAllButton.style.display =
+    completedTaskCount > 0 ? "inline-block" : "none";
+}
+
+function createTaskElement(task) {
   const li = document.createElement("li");
 
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
-
   checkbox.checked = task.completed;
 
   const deleteButton = document.createElement("button");
@@ -66,26 +68,25 @@ tasks.forEach((task) => {
     completedTaskCount++;
   }
 
-  activeTaskCountSpan.textContent = activeTaskCount;
-  completedTaskCountSpan.textContent = completedTaskCount;
+  deleteButton.addEventListener("click", () => {
+    tasks = tasks.filter((t) => t !== task);
+    saveTasks();
+    li.remove();
+    if (task.completed) {
+      completedTaskCount--;
+    } else {
+      activeTaskCount--;
+    }
 
-  deleteAllButton.style.display =
-    completedTaskCount > 0 ? "inline-block" : "none";
+    updateTaskCount();
+    updateDeleteAllButton();
+  });
 
   editButton.addEventListener("click", () => {
     editingTask = task;
     editingTaskText = taskText;
-    taskInput.value = task.text;
     taskCreateButton.textContent = "Update";
-  });
-
-  deleteButton.addEventListener("click", () => {
-    tasks = tasks.filter((t) => t !== task);
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-    li.remove();
-    completedTaskCount--;
-    activeTaskCountSpan.textContent = activeTaskCount;
-    completedTaskCountSpan.textContent = completedTaskCount;
+    taskInput.value = task.text;
   });
 
   checkbox.addEventListener("change", () => {
@@ -107,15 +108,31 @@ tasks.forEach((task) => {
       completedTaskCount++;
     }
 
-    activeTaskCountSpan.textContent = activeTaskCount;
-    completedTaskCountSpan.textContent = completedTaskCount;
+    editingTask = null;
+    editingTaskText = null;
+    taskForm.reset();
+    taskCreateButton.textContent = "Create";
 
-    deleteAllButton.style.display =
-      completedTaskCount > 0 ? "inline-block" : "none";
-
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    updateTaskCount();
+    updateDeleteAllButton();
+    saveTasks();
   });
+}
+
+deleteAllButton.addEventListener("click", () => {
+  tasks = tasks.filter((task) => !task.completed);
+  saveTasks();
+  completedTaskList.innerHTML = "";
+  completedTaskCount = 0;
+  updateTaskCount();
+  deleteAllButton.style.display = "none";
 });
+
+tasks.forEach((task) => {
+  createTaskElement(task);
+});
+
+updateTaskCount();
 
 taskForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -130,7 +147,7 @@ taskForm.addEventListener("submit", (e) => {
     editingTask.text = taskInputValue;
     editingTaskText.textContent = editingTask.text;
 
-    localStorage.setItem("tasks", JSON.stringify(tasks));
+    saveTasks();
 
     editingTask = null;
     editingTaskText = null;
@@ -141,82 +158,15 @@ taskForm.addEventListener("submit", (e) => {
     return;
   }
 
-  const li = document.createElement("li");
-
-  const checkbox = document.createElement("input");
-  checkbox.type = "checkbox";
-
-  const deleteButton = document.createElement("button");
-  deleteButton.textContent = "Delete";
-
-  const editButton = document.createElement("button");
-  editButton.textContent = "Edit";
-
-  const taskText = document.createElement("span");
-  taskText.textContent = taskInputValue;
-
-  li.appendChild(checkbox);
-  li.append(taskText);
-  li.append(editButton);
-
-  activeTaskList.appendChild(li);
-
   const task = {
     text: taskInputValue,
     completed: false,
   };
 
-  editButton.addEventListener("click", () => {
-    editingTask = task;
-    editingTaskText = taskText;
-
-    taskInput.value = task.text;
-  });
-
-  deleteButton.addEventListener("click", () => {
-    tasks = tasks.filter((t) => t !== task);
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-    li.remove();
-    completedTaskCount--;
-    activeTaskCountSpan.textContent = activeTaskCount;
-    completedTaskCountSpan.textContent = completedTaskCount;
-  });
-
-  checkbox.addEventListener("change", () => {
-    task.completed = checkbox.checked;
-
-    if (!task.completed) {
-      activeTaskList.appendChild(li);
-      li.append(editButton);
-      li.classList.remove("completed");
-      deleteButton.remove();
-      activeTaskCount++;
-      completedTaskCount--;
-    } else {
-      li.append(deleteButton);
-      completedTaskList.appendChild(li);
-      li.classList.add("completed");
-      editButton.remove();
-      activeTaskCount--;
-      completedTaskCount++;
-    }
-
-    activeTaskCountSpan.textContent = activeTaskCount;
-    completedTaskCountSpan.textContent = completedTaskCount;
-
-    deleteAllButton.style.display =
-      completedTaskCount > 0 ? "inline-block" : "none";
-
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  });
-
-  activeTaskCount++;
-
-  activeTaskCountSpan.textContent = activeTaskCount;
-  completedTaskCountSpan.textContent = completedTaskCount;
-
   tasks.push(task);
-  localStorage.setItem("tasks", JSON.stringify(tasks));
-
+  createTaskElement(task);
+  updateTaskCount();
+  updateDeleteAllButton();
+  saveTasks();
   taskForm.reset();
 });
