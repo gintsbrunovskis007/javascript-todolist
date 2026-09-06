@@ -12,9 +12,21 @@
 
     <form id="task-form">
       <div>
-        <label for="task-input">Task</label>
-        <input type="text" id="task-input" name="task-input" />
-        <button type="submit" id="task-create-button">Create</button>
+        <div>
+          <label for="task-input">Task</label>
+          <input type="text" id="task-input" name="task-input" />
+        </div>
+        <div>
+          <label for="task-priority-select">Priority</label>
+          <select name="task-priority-select" id="task-priority-select">
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+        <div>
+          <button type="submit" id="task-create-button">Create</button>
+        </div>
       </div>
     </form>
 

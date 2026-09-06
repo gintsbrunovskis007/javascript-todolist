@@ -7,6 +7,7 @@ const activeTaskCountSpan = document.getElementById("active-task-count-span");
 const completedTaskCountSpan = document.getElementById(
   "completed-task-count-span",
 );
+const taskPrioritySelect = document.getElementById("task-priority-select");
 
 const deleteAllButton = document.createElement("button");
 deleteAllButton.textContent = "Delete all";
@@ -59,6 +60,9 @@ function createTaskElement(task) {
   const taskText = document.createElement("span");
   taskText.textContent = task.text;
 
+  const priorityText = document.createElement("span");
+  priorityText.textContent = task.priority;
+
   li.appendChild(checkbox);
   li.append(taskText);
 
@@ -70,6 +74,8 @@ function createTaskElement(task) {
     li.classList.add("completed");
     editButton.remove();
   }
+
+  li.append(priorityText);
 
   deleteButton.addEventListener("click", () => {
     tasks = tasks.filter((t) => t !== task);
@@ -127,6 +133,7 @@ taskForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
   const taskInputValue = taskInput.value.trim();
+  const taskPriorityValue = taskPrioritySelect.value;
 
   if (taskInputValue === "") {
     return;
@@ -146,6 +153,7 @@ taskForm.addEventListener("submit", (e) => {
 
   const task = {
     text: taskInputValue,
+    priority: taskPriorityValue,
     completed: false,
   };
 
