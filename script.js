@@ -8,6 +8,8 @@ const completedTaskCountSpan = document.getElementById(
   "completed-task-count-span",
 );
 const taskPrioritySelect = document.getElementById("task-priority-select");
+const searchTaskInput = document.getElementById("search-task-input");
+const searchTaskList = document.getElementById("search-task-list");
 
 const deleteAllButton = document.createElement("button");
 deleteAllButton.textContent = "Delete all";
@@ -18,6 +20,35 @@ completedTaskCountSpan.parentElement.append(deleteAllButton);
 let editingTask = null;
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+function searchTask(tasks) {
+  searchTaskList.innerHTML = "";
+
+  if (tasks.length === 0) {
+    searchTaskList.innerHTML = "<p>No tasks found. </p>";
+    return;
+  }
+
+  tasks.forEach((task) => {
+    const li = document.createElement("li");
+    li.textContent = `${task.text} - ${task.priority}`;
+    searchTaskList.appendChild(li);
+  });
+}
+
+searchTaskInput.addEventListener("input", () => {
+  const query = searchTaskInput.value.toLowerCase().trim();
+
+  if (query === "") {
+    searchTaskList.innerHTML = "";
+    return;
+  }
+
+  const filtered = tasks.filter((task) =>
+    task.text.toLowerCase().startsWith(query),
+  );
+  searchTask(filtered);
+});
 
 function getTaskCounts() {
   const activeTaskCount = tasks.filter((task) => !task.completed).length;
