@@ -33,6 +33,10 @@
           />
         </div>
         <div>
+          <label for="task-category-select">Category</label>
+          <select id="task-category-select"></select>
+        </div>
+        <div>
           <button type="submit" id="task-create-button">Create</button>
         </div>
       </div>
@@ -64,6 +68,25 @@
           <ul id="search-task-list"></ul>
         </div>
       </div>
+    </div>
+
+    <hr />
+    <div><h2>Categories</h2></div>
+
+    <form id="task-category-form">
+      <div>
+        <label for="task-category-input">Category</label>
+        <input
+          type="text"
+          name="task-category-input"
+          id="task-category-input"
+        />
+        <button type="submit" id="task-category-create-button">Create</button>
+      </div>
+    </form>
+
+    <div>
+      <ul id="task-category-list"></ul>
     </div>
   </body>
 </html>

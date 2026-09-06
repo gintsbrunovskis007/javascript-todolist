@@ -11,7 +11,13 @@ const taskPrioritySelect = document.getElementById("task-priority-select");
 const searchTaskInput = document.getElementById("search-task-input");
 const searchTaskList = document.getElementById("search-task-list");
 const taskDueDateInput = document.getElementById("task-due-date-input");
-
+const taskCategoryForm = document.getElementById("task-category-form");
+const taskCategoryInput = document.getElementById("task-category-input");
+const taskCategoryList = document.getElementById("task-category-list");
+const taskCategoryCreateButton = document.getElementById(
+  "task-category-create-button",
+);
+const taskCategorySelect = document.getElementById("task-category-select");
 const deleteAllButton = document.createElement("button");
 deleteAllButton.textContent = "Delete all";
 deleteAllButton.style.display = "none";
@@ -19,8 +25,19 @@ deleteAllButton.style.display = "none";
 completedTaskCountSpan.parentElement.append(deleteAllButton);
 
 let editingTask = null;
+let editingCategory = null;
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+let categories = JSON.parse(localStorage.getItem("categories"));
+
+if (!categories) {
+  categories = ["Finance", "Work", "Personal"];
+  saveCategories();
+}
+
+const today = new Date().toISOString().split("T")[0];
+taskDueDateInput.value = today;
 
 function searchTask(tasks) {
   searchTaskList.innerHTML = "";
@@ -92,6 +109,10 @@ function saveTasks() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
+function saveCategories() {
+  localStorage.setItem("categories", JSON.stringify(categories));
+}
+
 function updateDeleteAllButton() {
   const { completedTaskCount } = getTaskCounts();
 
@@ -157,6 +178,8 @@ function createTaskElement(task) {
     editingTask = task;
     taskCreateButton.textContent = "Update";
     taskInput.value = task.text;
+    taskPrioritySelect.value = task.priority;
+    taskCategorySelect.value = task.category;
     taskDueDateInput.value = new Date(task.dueDate).toISOString().split("T")[0];
   });
 
@@ -172,6 +195,56 @@ function createTaskElement(task) {
   });
 
   return li;
+}
+
+function createCategoryElement(category, index) {
+  const li = document.createElement("li");
+  li.textContent = category;
+
+  const deleteButton = document.createElement("button");
+  deleteButton.textContent = "Delete";
+
+  const editButton = document.createElement("button");
+  editButton.textContent = "Edit";
+
+  li.append(deleteButton);
+  li.append(editButton);
+
+  deleteButton.addEventListener("click", () => {
+    categories.splice(index, 1);
+    saveCategories();
+    renderCategories();
+    renderCategorySelect();
+  });
+
+  editButton.addEventListener("click", () => {
+    editingCategory = category;
+    taskCategoryCreateButton.textContent = "Update";
+    taskCategoryInput.value = category;
+  });
+
+  return li;
+}
+
+function renderCategories() {
+  taskCategoryList.innerHTML = "";
+
+  categories.forEach((category, index) => {
+    const li = createCategoryElement(category, index);
+    taskCategoryList.appendChild(li);
+  });
+}
+
+function renderCategorySelect() {
+  taskCategorySelect.innerHTML = "";
+
+  categories.forEach((category) => {
+    const option = document.createElement("option");
+    option.value = category;
+    option.textContent = category;
+
+    taskCategorySelect.appendChild(option);
+  });
 }
 
 function renderTasks() {
@@ -200,6 +273,8 @@ deleteAllButton.addEventListener("click", () => {
 
 checkOverdueTasks();
 renderTasks();
+renderCategories();
+renderCategorySelect();
 
 taskForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -207,6 +282,7 @@ taskForm.addEventListener("submit", (e) => {
   const taskInputValue = taskInput.value.trim();
   const taskPrioritySelectValue = taskPrioritySelect.value;
   const taskDueDateValue = new Date(taskDueDateInput.value);
+  const taskCategorySelectValue = taskCategorySelect.value;
 
   const todayDate = new Date();
   todayDate.setHours(0, 0, 0, 0);
@@ -222,6 +298,7 @@ taskForm.addEventListener("submit", (e) => {
     editingTask.priority = taskPrioritySelectValue;
     editingTask.dueDate = taskDueDateValue;
     editingTask.overDue = isOverDue;
+    editingTask.category = taskCategorySelectValue;
     editingTask = null;
 
     saveTasks();
@@ -238,6 +315,7 @@ taskForm.addEventListener("submit", (e) => {
     priority: taskPrioritySelectValue,
     dueDate: taskDueDateValue,
     overDue: isOverDue,
+    category: taskCategorySelectValue,
     completed: false,
   };
 
@@ -245,4 +323,37 @@ taskForm.addEventListener("submit", (e) => {
   saveTasks();
   renderTasks();
   taskForm.reset();
+});
+
+taskCategoryForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const taskCategoryInputValue = taskCategoryInput.value;
+
+  const category = taskCategoryInputValue;
+
+  if (!category) {
+    return;
+  }
+
+  if (editingCategory) {
+    const index = categories.indexOf(editingCategory);
+    categories[index] = taskCategoryInputValue;
+
+    taskCategoryCreateButton.textContent = "Create";
+    saveCategories();
+    renderCategories();
+    renderCategorySelect();
+
+    editingCategory = null;
+    taskCategoryForm.reset();
+
+    return;
+  }
+
+  categories.push(category);
+  saveCategories();
+  renderCategories();
+  renderCategorySelect();
+  taskCategoryForm.reset();
 });
