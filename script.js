@@ -8,6 +8,12 @@ const completedTaskCountSpan = document.getElementById(
   "completed-task-count-span",
 );
 
+const deleteAllButton = document.createElement("button");
+deleteAllButton.textContent = "Delete all";
+deleteAllButton.style.display = "none";
+
+completedTaskCountSpan.parentElement.append(deleteAllButton);
+
 let editingTask = null;
 let editingTaskText = null;
 
@@ -15,6 +21,17 @@ let activeTaskCount = 0;
 let completedTaskCount = 0;
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+deleteAllButton.addEventListener("click", () => {
+  tasks = tasks.filter((task) => !task.completed);
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+
+  completedTaskList.innerHTML = "";
+  completedTaskCount = 0;
+  completedTaskCountSpan.textContent = completedTaskCount;
+
+  deleteAllButton.style.display = "none";
+});
 
 tasks.forEach((task) => {
   const li = document.createElement("li");
@@ -36,8 +53,6 @@ tasks.forEach((task) => {
   li.appendChild(checkbox);
   li.append(taskText);
 
-  console.log(activeTaskCount);
-
   if (!task.completed) {
     activeTaskList.appendChild(li);
     li.append(editButton);
@@ -53,6 +68,9 @@ tasks.forEach((task) => {
 
   activeTaskCountSpan.textContent = activeTaskCount;
   completedTaskCountSpan.textContent = completedTaskCount;
+
+  deleteAllButton.style.display =
+    completedTaskCount > 0 ? "inline-block" : "none";
 
   editButton.addEventListener("click", () => {
     editingTask = task;
@@ -91,6 +109,9 @@ tasks.forEach((task) => {
 
     activeTaskCountSpan.textContent = activeTaskCount;
     completedTaskCountSpan.textContent = completedTaskCount;
+
+    deleteAllButton.style.display =
+      completedTaskCount > 0 ? "inline-block" : "none";
 
     localStorage.setItem("tasks", JSON.stringify(tasks));
   });
@@ -182,6 +203,9 @@ taskForm.addEventListener("submit", (e) => {
 
     activeTaskCountSpan.textContent = activeTaskCount;
     completedTaskCountSpan.textContent = completedTaskCount;
+
+    deleteAllButton.style.display =
+      completedTaskCount > 0 ? "inline-block" : "none";
 
     localStorage.setItem("tasks", JSON.stringify(tasks));
   });
