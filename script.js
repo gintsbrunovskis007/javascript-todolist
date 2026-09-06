@@ -3,9 +3,16 @@ const taskInput = document.getElementById("task-input");
 const taskCreateButton = document.getElementById("task-create-button");
 const activeTaskList = document.getElementById("active-task-list");
 const completedTaskList = document.getElementById("completed-task-list");
+const activeTaskCountSpan = document.getElementById("active-task-count-span");
+const completedTaskCountSpan = document.getElementById(
+  "completed-task-count-span",
+);
 
 let editingTask = null;
 let editingTaskText = null;
+
+let activeTaskCount = 0;
+let completedTaskCount = 0;
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
@@ -29,16 +36,23 @@ tasks.forEach((task) => {
   li.appendChild(checkbox);
   li.append(taskText);
 
+  console.log(activeTaskCount);
+
   if (!task.completed) {
     activeTaskList.appendChild(li);
     li.append(editButton);
     deleteButton.remove();
+    activeTaskCount++;
   } else {
     li.append(deleteButton);
     completedTaskList.appendChild(li);
     li.classList.add("completed");
     editButton.remove();
+    completedTaskCount++;
   }
+
+  activeTaskCountSpan.textContent = activeTaskCount;
+  completedTaskCountSpan.textContent = completedTaskCount;
 
   editButton.addEventListener("click", () => {
     editingTask = task;
@@ -51,6 +65,9 @@ tasks.forEach((task) => {
     tasks = tasks.filter((t) => t !== task);
     localStorage.setItem("tasks", JSON.stringify(tasks));
     li.remove();
+    completedTaskCount--;
+    activeTaskCountSpan.textContent = activeTaskCount;
+    completedTaskCountSpan.textContent = completedTaskCount;
   });
 
   checkbox.addEventListener("change", () => {
@@ -61,12 +78,19 @@ tasks.forEach((task) => {
       li.append(editButton);
       li.classList.remove("completed");
       deleteButton.remove();
+      activeTaskCount++;
+      completedTaskCount--;
     } else {
       li.append(deleteButton);
       completedTaskList.appendChild(li);
       li.classList.add("completed");
       editButton.remove();
+      activeTaskCount--;
+      completedTaskCount++;
     }
+
+    activeTaskCountSpan.textContent = activeTaskCount;
+    completedTaskCountSpan.textContent = completedTaskCount;
 
     localStorage.setItem("tasks", JSON.stringify(tasks));
   });
@@ -132,6 +156,9 @@ taskForm.addEventListener("submit", (e) => {
     tasks = tasks.filter((t) => t !== task);
     localStorage.setItem("tasks", JSON.stringify(tasks));
     li.remove();
+    completedTaskCount--;
+    activeTaskCountSpan.textContent = activeTaskCount;
+    completedTaskCountSpan.textContent = completedTaskCount;
   });
 
   checkbox.addEventListener("change", () => {
@@ -142,15 +169,27 @@ taskForm.addEventListener("submit", (e) => {
       li.append(editButton);
       li.classList.remove("completed");
       deleteButton.remove();
+      activeTaskCount++;
+      completedTaskCount--;
     } else {
       li.append(deleteButton);
       completedTaskList.appendChild(li);
       li.classList.add("completed");
       editButton.remove();
+      activeTaskCount--;
+      completedTaskCount++;
     }
+
+    activeTaskCountSpan.textContent = activeTaskCount;
+    completedTaskCountSpan.textContent = completedTaskCount;
 
     localStorage.setItem("tasks", JSON.stringify(tasks));
   });
+
+  activeTaskCount++;
+
+  activeTaskCountSpan.textContent = activeTaskCount;
+  completedTaskCountSpan.textContent = completedTaskCount;
 
   tasks.push(task);
   localStorage.setItem("tasks", JSON.stringify(tasks));
