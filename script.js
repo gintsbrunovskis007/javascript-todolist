@@ -10,6 +10,7 @@ const completedTaskCountSpan = document.getElementById(
 const taskPrioritySelect = document.getElementById("task-priority-select");
 const searchTaskInput = document.getElementById("search-task-input");
 const searchTaskList = document.getElementById("search-task-list");
+const taskDueDateInput = document.getElementById("task-due-date-input");
 
 const deleteAllButton = document.createElement("button");
 deleteAllButton.textContent = "Delete all";
@@ -31,7 +32,14 @@ function searchTask(tasks) {
 
   tasks.forEach((task) => {
     const li = document.createElement("li");
-    li.textContent = `${task.text} - ${task.priority}`;
+
+    const date = new Date(task.dueDate).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    li.textContent = `${task.text} - ${task.priority} - ${date}`;
     searchTaskList.appendChild(li);
   });
 }
@@ -49,6 +57,22 @@ searchTaskInput.addEventListener("input", () => {
   );
   searchTask(filtered);
 });
+
+function checkOverdueTasks() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  tasks.forEach((task) => {
+    const dueDate = new Date(task.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+
+    if (!task.completed && dueDate < today) {
+      task.overDue = true;
+    }
+  });
+
+  saveTasks();
+}
 
 function getTaskCounts() {
   const activeTaskCount = tasks.filter((task) => !task.completed).length;
@@ -94,6 +118,15 @@ function createTaskElement(task) {
   const priorityText = document.createElement("span");
   priorityText.textContent = task.priority;
 
+  const dueDateText = document.createElement("span");
+  const date = new Date(task.dueDate);
+
+  dueDateText.textContent = date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
   li.appendChild(checkbox);
   li.append(taskText);
 
@@ -106,7 +139,13 @@ function createTaskElement(task) {
     editButton.remove();
   }
 
+  if (task.overDue) {
+    li.classList.add("overdue");
+    li.insertAdjacentText("afterbegin", "⚠️ ");
+  }
+
   li.append(priorityText);
+  li.append(dueDateText);
 
   deleteButton.addEventListener("click", () => {
     tasks = tasks.filter((t) => t !== task);
@@ -118,6 +157,7 @@ function createTaskElement(task) {
     editingTask = task;
     taskCreateButton.textContent = "Update";
     taskInput.value = task.text;
+    taskDueDateInput.value = new Date(task.dueDate).toISOString().split("T")[0];
   });
 
   checkbox.addEventListener("change", () => {
@@ -158,13 +198,20 @@ deleteAllButton.addEventListener("click", () => {
   renderTasks();
 });
 
+checkOverdueTasks();
 renderTasks();
 
 taskForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
   const taskInputValue = taskInput.value.trim();
-  const taskPriorityValue = taskPrioritySelect.value;
+  const taskPrioritySelectValue = taskPrioritySelect.value;
+  const taskDueDateValue = new Date(taskDueDateInput.value);
+
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+
+  const isOverDue = taskDueDateValue < todayDate;
 
   if (taskInputValue === "") {
     return;
@@ -172,6 +219,9 @@ taskForm.addEventListener("submit", (e) => {
 
   if (editingTask) {
     editingTask.text = taskInputValue;
+    editingTask.priority = taskPrioritySelectValue;
+    editingTask.dueDate = taskDueDateValue;
+    editingTask.overDue = isOverDue;
     editingTask = null;
 
     saveTasks();
@@ -184,7 +234,9 @@ taskForm.addEventListener("submit", (e) => {
 
   const task = {
     text: taskInputValue,
-    priority: taskPriorityValue,
+    priority: taskPrioritySelectValue,
+    dueDate: taskDueDateValue,
+    overDue: isOverDue,
     completed: false,
   };
 
