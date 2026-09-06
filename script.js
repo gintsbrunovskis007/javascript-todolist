@@ -15,14 +15,19 @@ deleteAllButton.style.display = "none";
 completedTaskCountSpan.parentElement.append(deleteAllButton);
 
 let editingTask = null;
-let editingTaskText = null;
-
-let activeTaskCount = 0;
-let completedTaskCount = 0;
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
+function getTaskCounts() {
+  const activeTaskCount = tasks.filter((task) => !task.completed).length;
+  const completedTaskCount = tasks.filter((task) => task.completed).length;
+
+  return { activeTaskCount, completedTaskCount };
+}
+
 function updateTaskCount() {
+  const { activeTaskCount, completedTaskCount } = getTaskCounts();
+
   activeTaskCountSpan.textContent = activeTaskCount;
   completedTaskCountSpan.textContent = completedTaskCount;
 }
@@ -32,6 +37,8 @@ function saveTasks() {
 }
 
 function updateDeleteAllButton() {
+  const { completedTaskCount } = getTaskCounts();
+
   deleteAllButton.style.display =
     completedTaskCount > 0 ? "inline-block" : "none";
 }
@@ -56,35 +63,22 @@ function createTaskElement(task) {
   li.append(taskText);
 
   if (!task.completed) {
-    activeTaskList.appendChild(li);
     li.append(editButton);
     deleteButton.remove();
-    activeTaskCount++;
   } else {
     li.append(deleteButton);
-    completedTaskList.appendChild(li);
     li.classList.add("completed");
     editButton.remove();
-    completedTaskCount++;
   }
 
   deleteButton.addEventListener("click", () => {
     tasks = tasks.filter((t) => t !== task);
     saveTasks();
-    li.remove();
-    if (task.completed) {
-      completedTaskCount--;
-    } else {
-      activeTaskCount--;
-    }
-
-    updateTaskCount();
-    updateDeleteAllButton();
+    renderTasks();
   });
 
   editButton.addEventListener("click", () => {
     editingTask = task;
-    editingTaskText = taskText;
     taskCreateButton.textContent = "Update";
     taskInput.value = task.text;
   });
@@ -92,52 +86,47 @@ function createTaskElement(task) {
   checkbox.addEventListener("change", () => {
     task.completed = checkbox.checked;
 
-    if (!task.completed) {
-      activeTaskList.appendChild(li);
-      li.append(editButton);
-      li.classList.remove("completed");
-      deleteButton.remove();
-      activeTaskCount++;
-      completedTaskCount--;
-    } else {
-      li.append(deleteButton);
-      completedTaskList.appendChild(li);
-      li.classList.add("completed");
-      editButton.remove();
-      activeTaskCount--;
-      completedTaskCount++;
-    }
-
     editingTask = null;
-    editingTaskText = null;
     taskForm.reset();
     taskCreateButton.textContent = "Create";
 
-    updateTaskCount();
-    updateDeleteAllButton();
     saveTasks();
+    renderTasks();
   });
+
+  return li;
+}
+
+function renderTasks() {
+  activeTaskList.innerHTML = "";
+  completedTaskList.innerHTML = "";
+
+  tasks.forEach((task) => {
+    const li = createTaskElement(task);
+
+    if (task.completed) {
+      completedTaskList.appendChild(li);
+    } else {
+      activeTaskList.appendChild(li);
+    }
+  });
+
+  updateTaskCount();
+  updateDeleteAllButton();
 }
 
 deleteAllButton.addEventListener("click", () => {
   tasks = tasks.filter((task) => !task.completed);
   saveTasks();
-  completedTaskList.innerHTML = "";
-  completedTaskCount = 0;
-  updateTaskCount();
-  deleteAllButton.style.display = "none";
+  renderTasks();
 });
 
-tasks.forEach((task) => {
-  createTaskElement(task);
-});
-
-updateTaskCount();
+renderTasks();
 
 taskForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  let taskInputValue = taskInput.value.trim();
+  const taskInputValue = taskInput.value.trim();
 
   if (taskInputValue === "") {
     return;
@@ -145,16 +134,13 @@ taskForm.addEventListener("submit", (e) => {
 
   if (editingTask) {
     editingTask.text = taskInputValue;
-    editingTaskText.textContent = editingTask.text;
+    editingTask = null;
 
     saveTasks();
-
-    editingTask = null;
-    editingTaskText = null;
-
+    renderTasks();
+    taskForm.reset();
     taskCreateButton.textContent = "Create";
 
-    taskForm.reset();
     return;
   }
 
@@ -164,9 +150,7 @@ taskForm.addEventListener("submit", (e) => {
   };
 
   tasks.push(task);
-  createTaskElement(task);
-  updateTaskCount();
-  updateDeleteAllButton();
   saveTasks();
+  renderTasks();
   taskForm.reset();
 });
