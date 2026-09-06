@@ -233,6 +233,7 @@ taskForm.addEventListener("submit", (e) => {
   }
 
   const task = {
+    id: crypto.randomUUID(),
     text: taskInputValue,
     priority: taskPrioritySelectValue,
     dueDate: taskDueDateValue,
