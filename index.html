@@ -36,6 +36,10 @@
           <label for="task-category-select">Category</label>
           <select id="task-category-select"></select>
         </div>
+        <div style="display: flex">
+          <label>Tags</label>
+          <div id="task-tag-container"></div>
+        </div>
         <div>
           <button type="submit" id="task-create-button">Create</button>
         </div>
@@ -87,6 +91,20 @@
 
     <div>
       <ul id="task-category-list"></ul>
+    </div>
+
+    <hr />
+    <div><h2>Tags</h2></div>
+    <form id="task-tag-form">
+      <div>
+        <label for="task-tag-input">Tag</label>
+        <input type="text" name="task-tag-input" id="task-tag-input" />
+        <button type="submit" id="task-tag-create-button">Create</button>
+      </div>
+    </form>
+
+    <div>
+      <ul id="task-tag-list"></ul>
     </div>
   </body>
 </html>

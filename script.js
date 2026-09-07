@@ -21,19 +21,33 @@ const taskCategorySelect = document.getElementById("task-category-select");
 const deleteAllButton = document.createElement("button");
 deleteAllButton.textContent = "Delete all";
 deleteAllButton.style.display = "none";
-
 completedTaskCountSpan.parentElement.append(deleteAllButton);
+const taskTagContainer = document.getElementById("task-tag-container");
+const taskTagForm = document.getElementById("task-tag-form");
+const taskTagInput = document.getElementById("task-tag-input");
+const taskTagList = document.getElementById("task-tag-list");
+const taskTagCreateButton = document.getElementById("task-tag-create-button");
 
 let editingTask = null;
 let editingCategory = null;
+let editingTag = null;
+
+let selectedTagsArray = [];
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
 let categories = JSON.parse(localStorage.getItem("categories"));
 
+let tags = JSON.parse(localStorage.getItem("tags"));
+
 if (!categories) {
   categories = ["Finance", "Work", "Personal"];
   saveCategories();
+}
+
+if (!tags) {
+  tags = ["JavaScript", "Python", "Java"];
+  saveTags();
 }
 
 const today = new Date().toISOString().split("T")[0];
@@ -181,6 +195,17 @@ function createTaskElement(task) {
     taskPrioritySelect.value = task.priority;
     taskCategorySelect.value = task.category;
     taskDueDateInput.value = new Date(task.dueDate).toISOString().split("T")[0];
+
+    selectedTagsArray = [...task.selectedTags];
+
+    document
+      .querySelectorAll("#task-tag-container button")
+      .forEach((button) => {
+        button.classList.toggle(
+          "selected",
+          selectedTagsArray.includes(button.textContent),
+        );
+      });
   });
 
   checkbox.addEventListener("change", () => {
@@ -247,6 +272,66 @@ function renderCategorySelect() {
   });
 }
 
+function createTaskTagElement(tag, index) {
+  const li = document.createElement("li");
+
+  li.textContent = tag;
+
+  const deleteButton = document.createElement("button");
+  deleteButton.textContent = "Delete";
+
+  deleteButton.addEventListener("click", () => {
+    tags.splice(index, 1);
+    saveTags();
+    renderTags();
+  });
+
+  const editButton = document.createElement("button");
+  editButton.textContent = "Edit";
+
+  editButton.addEventListener("click", () => {
+    editingTag = tag;
+    taskTagInput.value = tag;
+    taskTagCreateButton.textContent = "Update";
+  });
+
+  li.append(deleteButton);
+  li.append(editButton);
+
+  return li;
+}
+
+function saveTags() {
+  localStorage.setItem("tags", JSON.stringify(tags));
+}
+
+function renderTags() {
+  taskTagList.innerHTML = "";
+  tags.forEach((tag, index) => {
+    const li = createTaskTagElement(tag, index);
+    taskTagList.appendChild(li);
+  });
+}
+
+function renderTaskTags() {
+  taskTagContainer.innerHTML = "";
+  tags.forEach((tag) => {
+    const button = document.createElement("button");
+    button.textContent = tag;
+    button.type = "button";
+    button.addEventListener("click", () => {
+      if (selectedTagsArray.includes(tag)) {
+        selectedTagsArray = selectedTagsArray.filter((t) => t !== tag);
+        button.classList.remove("selected");
+      } else {
+        selectedTagsArray.push(tag);
+        button.classList.add("selected");
+      }
+    });
+    taskTagContainer.append(button);
+  });
+}
+
 function renderTasks() {
   activeTaskList.innerHTML = "";
   completedTaskList.innerHTML = "";
@@ -275,6 +360,8 @@ checkOverdueTasks();
 renderTasks();
 renderCategories();
 renderCategorySelect();
+renderTags();
+renderTaskTags();
 
 taskForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -299,10 +386,12 @@ taskForm.addEventListener("submit", (e) => {
     editingTask.dueDate = taskDueDateValue;
     editingTask.overDue = isOverDue;
     editingTask.category = taskCategorySelectValue;
+    editingTask.selectedTags = selectedTagsArray;
     editingTask = null;
-
+    selectedTagsArray = [];
     saveTasks();
     renderTasks();
+    renderTaskTags();
     taskForm.reset();
     taskCreateButton.textContent = "Create";
 
@@ -316,12 +405,14 @@ taskForm.addEventListener("submit", (e) => {
     dueDate: taskDueDateValue,
     overDue: isOverDue,
     category: taskCategorySelectValue,
+    selectedTags: selectedTagsArray,
     completed: false,
   };
 
   tasks.push(task);
   saveTasks();
   renderTasks();
+  renderTaskTags();
   taskForm.reset();
 });
 
@@ -356,4 +447,35 @@ taskCategoryForm.addEventListener("submit", (e) => {
   renderCategories();
   renderCategorySelect();
   taskCategoryForm.reset();
+});
+
+taskTagForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const taskTagInputValue = taskTagInput.value;
+
+  const tag = taskTagInputValue;
+
+  if (!tag) {
+    return;
+  }
+
+  if (editingTag) {
+    const index = tags.indexOf(editingTag);
+    tags[index] = taskTagInputValue;
+
+    taskTagCreateButton.textContent = "Create";
+
+    editingTag = null;
+    saveTags();
+    renderTags();
+    taskTagForm.reset();
+
+    return;
+  }
+
+  tags.push(tag);
+  saveTags();
+  renderTags();
+  taskTagForm.reset();
 });
