@@ -50,6 +50,15 @@
       <div>
         <h2>Active tasks <span id="active-task-count-span">(0)</span></h2>
       </div>
+      <div style="display: flex">
+        <span>Filter by</span>
+        <select id="task-filter-by-select"></select>
+        <select id="task-filter-specific-select"></select>
+
+        <div id="task-filter-specific-container"></div>
+      </div>
+      <ul style="border: 3px solid black" id="filtered-task-list"></ul>
+
       <div>
         <ul id="active-task-list"></ul>
       </div>

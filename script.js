@@ -27,12 +27,21 @@ const taskTagForm = document.getElementById("task-tag-form");
 const taskTagInput = document.getElementById("task-tag-input");
 const taskTagList = document.getElementById("task-tag-list");
 const taskTagCreateButton = document.getElementById("task-tag-create-button");
+const taskFilterBySelect = document.getElementById("task-filter-by-select");
+const taskFilterSpecificSelect = document.getElementById(
+  "task-filter-specific-select",
+);
+const taskFilterSpecificContainer = document.getElementById(
+  "task-filter-specific-container",
+);
+const filteredTaskList = document.getElementById("filtered-task-list");
 
 let editingTask = null;
 let editingCategory = null;
 let editingTag = null;
 
 let selectedTagsArray = [];
+let selectedFilterTagsArray = [];
 
 let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
@@ -162,6 +171,12 @@ function createTaskElement(task) {
     year: "numeric",
   });
 
+  const categoryText = document.createElement("span");
+  categoryText.textContent = task.category;
+
+  const tagText = document.createElement("span");
+  tagText.textContent = task.selectedTags;
+
   li.appendChild(checkbox);
   li.append(taskText);
 
@@ -181,6 +196,8 @@ function createTaskElement(task) {
 
   li.append(priorityText);
   li.append(dueDateText);
+  li.append(categoryText);
+  li.append(tagText);
 
   deleteButton.addEventListener("click", () => {
     tasks = tasks.filter((t) => t !== task);
@@ -270,6 +287,267 @@ function renderCategorySelect() {
 
     taskCategorySelect.appendChild(option);
   });
+}
+
+function filterTasksByTags(filterMode) {
+  filteredTaskList.innerHTML = "";
+
+  let filteredTasks;
+
+  if (filterMode === "OR") {
+    filteredTasks = tasks.filter((task) =>
+      selectedFilterTagsArray.some((tag) => task.selectedTags.includes(tag)),
+    );
+  } else {
+    filteredTasks = tasks.filter((task) =>
+      selectedFilterTagsArray.every((tag) => task.selectedTags.includes(tag)),
+    );
+  }
+
+  filteredTasks.forEach((task) => {
+    const li = document.createElement("li");
+    li.textContent = task.text;
+    filteredTaskList.appendChild(li);
+  });
+}
+
+function renderFilterSelect() {
+  taskFilterSpecificContainer.innerHTML = "";
+  taskFilterSpecificSelect.innerHTML = "";
+
+  taskFilterSpecificContainer.classList.add("hidden");
+  taskFilterSpecificSelect.classList.remove("hidden");
+
+  const defaultOption = document.createElement("option");
+  defaultOption.textContent = "-";
+
+  const priorityOption = document.createElement("option");
+  priorityOption.textContent = "Priority";
+
+  const dueDateOption = document.createElement("option");
+  dueDateOption.textContent = "Due Date";
+
+  const categoryOption = document.createElement("option");
+  categoryOption.textContent = "Category";
+
+  const tagsOption = document.createElement("option");
+  tagsOption.textContent = "Tags";
+
+  taskFilterBySelect.appendChild(defaultOption);
+
+  taskFilterBySelect.appendChild(priorityOption);
+  taskFilterBySelect.appendChild(dueDateOption);
+  taskFilterBySelect.appendChild(categoryOption);
+  taskFilterBySelect.appendChild(tagsOption);
+
+  taskFilterBySelect.addEventListener("change", () => {
+    taskFilterSpecificContainer.innerHTML = "";
+    taskFilterSpecificSelect.innerHTML = "";
+
+    taskFilterSpecificContainer.classList.add("hidden");
+    taskFilterSpecificSelect.classList.remove("hidden");
+
+    filterByOption = taskFilterBySelect.value;
+
+    if (filterByOption == priorityOption.value) {
+      const defaultPriorityOption = document.createElement("option");
+      defaultPriorityOption.textContent = "-";
+
+      const highOption = document.createElement("option");
+      highOption.text = "High";
+
+      const mediumOption = document.createElement("option");
+      mediumOption.text = "Medium";
+
+      const lowOption = document.createElement("option");
+      lowOption.text = "Low";
+
+      taskFilterSpecificSelect.appendChild(defaultPriorityOption);
+      taskFilterSpecificSelect.appendChild(highOption);
+      taskFilterSpecificSelect.appendChild(mediumOption);
+      taskFilterSpecificSelect.appendChild(lowOption);
+
+      taskFilterSpecificSelect.addEventListener("change", () => {
+        renderFilterPriority();
+      });
+    } else if (filterByOption == categoryOption.value) {
+      filteredTaskList.innerHTML = "";
+      const defaultCategoryOption = document.createElement("option");
+      defaultCategoryOption.textContent = "-";
+      taskFilterSpecificSelect.appendChild(defaultCategoryOption);
+      categories.forEach((category) => {
+        const option = document.createElement("option");
+        option.textContent = category;
+        taskFilterSpecificSelect.appendChild(option);
+      });
+
+      const tasksArray = [...tasks];
+      let filteredTaskArray = [];
+
+      taskFilterSpecificSelect.addEventListener("change", () => {
+        filteredTaskList.innerHTML = "";
+
+        categories.forEach((category) => {
+          if (category === taskFilterSpecificSelect.value) {
+            filteredTaskArray = tasksArray.filter(
+              (task) => task.category === category,
+            );
+
+            filteredTaskArray.forEach((task) => {
+              const li = document.createElement("li");
+              li.textContent = task.text;
+              const span = document.createElement("span");
+              span.textContent = task.category;
+              li.appendChild(span);
+              filteredTaskList.append(li);
+            });
+          }
+        });
+      });
+    } else if (filterByOption == tagsOption.value) {
+      const andRadioButton = document.createElement("input");
+      andRadioButton.type = "radio";
+      andRadioButton.name = "filter";
+      andRadioButton.value = "AND";
+
+      const andLabel = document.createElement("label");
+      andLabel.textContent = "AND";
+      andLabel.prepend(andRadioButton);
+
+      const orRadioButton = document.createElement("input");
+      orRadioButton.type = "radio";
+      orRadioButton.name = "filter";
+      orRadioButton.value = "OR";
+
+      const orLabel = document.createElement("label");
+      orLabel.textContent = "OR";
+      orRadioButton.checked = true;
+      orLabel.prepend(orRadioButton);
+
+      taskFilterSpecificContainer.appendChild(orLabel);
+      taskFilterSpecificContainer.appendChild(andLabel);
+
+      andRadioButton.addEventListener("change", () => {
+        filterTasksByTags("AND");
+      });
+
+      orRadioButton.addEventListener("change", () => {
+        filterTasksByTags("OR");
+      });
+
+      tags.forEach((tag) => {
+        const button = document.createElement("button");
+        button.textContent = tag;
+        button.type = "button";
+        button.addEventListener("click", () => {
+          if (selectedFilterTagsArray.includes(tag)) {
+            selectedFilterTagsArray = selectedFilterTagsArray.filter(
+              (t) => t !== tag,
+            );
+            button.classList.remove("selected");
+          } else {
+            selectedFilterTagsArray.push(tag);
+            button.classList.add("selected");
+          }
+
+          console.log(selectedFilterTagsArray);
+
+          const filterMode = document.querySelector(
+            'input[name="filter"]:checked',
+          ).value;
+
+          let filteredTasks;
+
+          if (filterMode === "OR") {
+            filteredTasks = tasks.filter((task) =>
+              selectedFilterTagsArray.some((tag) =>
+                task.selectedTags.includes(tag),
+              ),
+            );
+          } else {
+            filteredTasks = tasks.filter((task) =>
+              selectedFilterTagsArray.every((tag) =>
+                task.selectedTags.includes(tag),
+              ),
+            );
+          }
+
+          filteredTaskList.innerHTML = "";
+
+          filteredTasks.forEach((task) => {
+            const li = document.createElement("li");
+            li.textContent = task.text;
+            filteredTaskList.appendChild(li);
+          });
+        });
+        taskFilterSpecificContainer.appendChild(button);
+        taskFilterSpecificContainer.classList.remove("hidden");
+        taskFilterSpecificSelect.classList.add("hidden");
+      });
+    } else if (filterByOption == dueDateOption.value) {
+      taskFilterSpecificContainer.classList.remove("hidden");
+      taskFilterSpecificSelect.classList.add("hidden");
+
+      const dateInput = document.createElement("input");
+      dateInput.type = "date";
+
+      taskFilterSpecificContainer.appendChild(dateInput);
+
+      dateInput.addEventListener("change", () => {
+        filteredTaskList.innerHTML = "";
+
+        const filteredTasks = tasks.filter(
+          (task) =>
+            new Date(task.dueDate).toISOString().split("T")[0] ===
+            dateInput.value,
+        );
+
+        filteredTasks.forEach((task) => {
+          const li = document.createElement("li");
+          li.textContent = task.text;
+
+          filteredTaskList.appendChild(li);
+        });
+      });
+    }
+  });
+}
+
+function renderFilterPriority() {
+  if (taskFilterSpecificSelect.value === "High") {
+    filteredTaskList.innerHTML = "";
+
+    const tasksArray = [...tasks];
+    const filteredTasks = tasksArray.filter((task) => task.priority === "high");
+
+    filteredTasks.forEach((task) => {
+      const li = document.createElement("li");
+      li.textContent = task.text;
+      filteredTaskList.appendChild(li);
+    });
+  } else if (taskFilterSpecificSelect.value === "Medium") {
+    filteredTaskList.innerHTML = "";
+    const tasksArray = [...tasks];
+    const filteredTasks = tasksArray.filter(
+      (task) => task.priority === "medium",
+    );
+
+    filteredTasks.forEach((task) => {
+      const li = document.createElement("li");
+      li.textContent = task.text;
+      filteredTaskList.appendChild(li);
+    });
+  } else if (taskFilterSpecificSelect.value === "Low") {
+    filteredTaskList.innerHTML = "";
+    const tasksArray = [...tasks];
+    const filteredTasks = tasksArray.filter((task) => task.priority === "low");
+
+    filteredTasks.forEach((task) => {
+      const li = document.createElement("li");
+      li.textContent = task.text;
+      filteredTaskList.appendChild(li);
+    });
+  }
 }
 
 function createTaskTagElement(tag, index) {
@@ -362,6 +640,7 @@ renderCategories();
 renderCategorySelect();
 renderTags();
 renderTaskTags();
+renderFilterSelect();
 
 taskForm.addEventListener("submit", (e) => {
   e.preventDefault();
@@ -413,6 +692,7 @@ taskForm.addEventListener("submit", (e) => {
   saveTasks();
   renderTasks();
   renderTaskTags();
+  renderFilterPriority();
   taskForm.reset();
 });
 
