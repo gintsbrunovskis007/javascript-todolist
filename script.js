@@ -647,7 +647,13 @@ taskForm.addEventListener("submit", (e) => {
 
   const taskInputValue = taskInput.value.trim();
   const taskPrioritySelectValue = taskPrioritySelect.value;
+
+  if (taskDueDateInput.value === "") {
+    alert("Date cannot be empty.");
+    return;
+  }
   const taskDueDateValue = new Date(taskDueDateInput.value);
+
   const taskCategorySelectValue = taskCategorySelect.value;
 
   const todayDate = new Date();
@@ -656,6 +662,12 @@ taskForm.addEventListener("submit", (e) => {
   const isOverDue = taskDueDateValue < todayDate;
 
   if (taskInputValue === "") {
+    alert("Task cannot be empty.");
+    return;
+  }
+
+  if (taskInputValue.length > 100) {
+    alert("Task cannot exceed 100 characters.");
     return;
   }
 
@@ -703,7 +715,13 @@ taskCategoryForm.addEventListener("submit", (e) => {
 
   const category = taskCategoryInputValue;
 
-  if (!category) {
+  if (category === "") {
+    alert("Category cannot be empty.");
+    return;
+  }
+
+  if (category > 100) {
+    alert("Category cannot exceed 100 characters.");
     return;
   }
 
@@ -736,7 +754,13 @@ taskTagForm.addEventListener("submit", (e) => {
 
   const tag = taskTagInputValue;
 
-  if (!tag) {
+  if (tag === "") {
+    alert("Tag cannot be empty.");
+    return;
+  }
+
+  if (tag > 100) {
+    alert("Tag cannot exceed 100 characters.");
     return;
   }
 

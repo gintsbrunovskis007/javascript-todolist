@@ -14,7 +14,13 @@
       <div>
         <div>
           <label for="task-input">Task</label>
-          <input type="text" id="task-input" name="task-input" />
+          <input
+            type="text"
+            id="task-input"
+            name="task-input"
+            minlength="1"
+            maxlength="100"
+          />
         </div>
         <div>
           <label for="task-priority-select">Priority</label>
@@ -30,6 +36,7 @@
             type="date"
             name="task-due-date-input"
             id="task-due-date-input"
+            required
           />
         </div>
         <div>
@@ -93,6 +100,8 @@
           type="text"
           name="task-category-input"
           id="task-category-input"
+          minlength="1"
+          maxlength="100"
         />
         <button type="submit" id="task-category-create-button">Create</button>
       </div>
@@ -107,7 +116,13 @@
     <form id="task-tag-form">
       <div>
         <label for="task-tag-input">Tag</label>
-        <input type="text" name="task-tag-input" id="task-tag-input" />
+        <input
+          type="text"
+          name="task-tag-input"
+          id="task-tag-input"
+          minlength="1"
+          maxlength="100"
+        />
         <button type="submit" id="task-tag-create-button">Create</button>
       </div>
     </form>
