@@ -146,10 +146,6 @@ function updateDeleteAllButton() {
 function createTaskElement(task) {
   const li = document.createElement("li");
 
-  const checkbox = document.createElement("input");
-  checkbox.type = "checkbox";
-  checkbox.checked = task.completed;
-
   const deleteButton = document.createElement("button");
   deleteButton.textContent = "Delete";
 
@@ -177,7 +173,6 @@ function createTaskElement(task) {
   const tagText = document.createElement("span");
   tagText.textContent = task.selectedTags;
 
-  li.appendChild(checkbox);
   li.append(taskText);
 
   if (!task.completed) {
@@ -224,17 +219,23 @@ function createTaskElement(task) {
         );
       });
   });
+  if (!task.completed) {
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
 
-  checkbox.addEventListener("change", () => {
-    task.completed = checkbox.checked;
+    li.appendChild(checkbox);
 
-    editingTask = null;
-    taskForm.reset();
-    taskCreateButton.textContent = "Create";
+    checkbox.addEventListener("change", () => {
+      task.completed = true;
 
-    saveTasks();
-    renderTasks();
-  });
+      editingTask = null;
+      taskForm.reset();
+      taskCreateButton.textContent = "Create";
+
+      saveTasks();
+      renderTasks();
+    });
+  }
 
   return li;
 }
