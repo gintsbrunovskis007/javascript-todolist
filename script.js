@@ -702,6 +702,7 @@ taskForm.addEventListener("submit", (e) => {
   };
 
   tasks.push(task);
+  selectedTagsArray = []
   saveTasks();
   renderTasks();
   renderTaskTags();
